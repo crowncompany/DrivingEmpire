@@ -107,7 +107,7 @@ Fluent:Notify({
 
 Tabs.Main:AddParagraph({
     Title = "Welcome to The Driving Empire Script❗",
-    Content = "By ashy1828, And a Tiny Bit of monstraa"
+    Content = "Developed By ashy1828"
 })
 
 -- 🌟 Auto Farm Toggle (Section renamed)

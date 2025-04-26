@@ -22,6 +22,8 @@ local AutoFarm = false
 local AutoFarmRunning = false
 local TouchTheRoad = false
 local FarmSpeed = 600 -- Default farm speed
+local RemoveSpeedCap = false
+local VehicleSpeedMultiplier = 1
 
 -- Player & Utility
 local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -108,7 +110,8 @@ Tabs.Main:AddParagraph({
     Content = "By ashy1828, And a Tiny Bit of monstraa"
 })
 
--- 🌟 Auto Farm Toggle
+-- 🌟 Auto Farm Toggle (Section renamed)
+Tabs.Main:AddSection("Auto Farm Options")
 Tabs.Main:AddToggle("AutoFarmToggle", {
     Title = "Auto Farm",
     Default = false
@@ -125,7 +128,7 @@ Tabs.Main:AddSlider("SpeedSlider", {
     Description = "Adjust Auto Farm Speed",
     Default = 600,
     Min = 100,
-    Max = 1000,
+    Max = 800,
     Rounding = 0,
     Callback = function(val)
         FarmSpeed = val
@@ -140,12 +143,81 @@ Tabs.Main:AddToggle("TouchTheRoad", {
     TouchTheRoad = val
 end)
 
--- Anti-AFK Toggle
+-- Anti-AFK Toggle (Moved back into Auto Farm Options)
 Tabs.Main:AddToggle("AntiAfkToggle", {
     Title = "Anti AFK",
     Default = true
 }):OnChanged(function(val)
     -- You could toggle this off if needed
+end)
+
+-- 🌟 Speed Boost Options
+Tabs.Main:AddSection("Speed Boost Options")
+
+-- Remove Vehicle Speed Cap Toggle
+Tabs.Main:AddToggle("RemoveSpeedCap", {
+    Title = "Remove Vehicle Speed Cap",
+    Default = false
+}):OnChanged(function(val)
+    RemoveSpeedCap = val
+end)
+
+-- Vehicle Speed Multiplier Slider
+Tabs.Main:AddSlider("VehicleSpeedMultiplier", {
+    Title = "Vehicle Speed Multiplier",
+    Description = "Boost your car's top speed (not for Auto Farm)",
+    Default = 1,
+    Min = 1,
+    Max = 10,
+    Rounding = 1,
+    Callback = function(val)
+        VehicleSpeedMultiplier = val
+    end
+})
+
+-- Apply Vehicle Speed Cap Removal and Vehicle Speed Multiplier
+task.spawn(function()
+    while true do
+        task.wait(0.2)
+        local car = GetCurrentVehicle()
+        if car then
+            for _, v in pairs(car:GetDescendants()) do
+                if v:IsA("VehicleSeat") then
+                    pcall(function()
+                        if RemoveSpeedCap then
+                            v.MaxSpeed = math.huge  -- Remove speed cap
+                        end
+                        if v:FindFirstChild("MaxSpeed") then
+                            v.MaxSpeed.Value = 200 * VehicleSpeedMultiplier -- Adjust the multiplier as needed
+                        end
+                    end)
+                end
+            end
+        end
+    end
+end)
+
+-- 🌟 Auto Repair Vehicle Toggle
+Tabs.Main:AddToggle("AutoRepairToggle", {
+    Title = "Auto Repair Vehicle",
+    Default = false
+}):OnChanged(function(val)
+    local car = GetCurrentVehicle()
+    if car then
+        -- Create a loop to constantly check if vehicle is damaged and repair it
+        task.spawn(function()
+            while true do
+                wait(1)  -- Check every second
+                if val and car and car:FindFirstChild("Health") then
+                    -- Auto-repair vehicle if health drops below a certain threshold
+                    if car.Health.Value < car.Health.MaxValue then
+                        car.Health.Value = car.Health.MaxValue  -- Repair vehicle to full health
+                        print("Vehicle repaired!")
+                    end
+                end
+            end
+        end)
+    end
 end)
 
 -- Credits tab
